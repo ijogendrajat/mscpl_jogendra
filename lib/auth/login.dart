@@ -9,7 +9,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  TextEditingController _controller = TextEditingController();
+  bool tc = false;
+  bool isMobileNumberValid = false;
+  String mobileNumber = "";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,34 +42,45 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontSize: 16,
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               SizedBox(
                 height: 50,
-                child: TextField(
-                  controller: _controller,
+                child: TextFormField(
+                  initialValue: mobileNumber,
                   keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Field cannot be empty';
+                    }
+                    if (value.length < 10) {
+                      return 'Invalid Mobile Number';
+                    }
+                    return null;
+                  },
                   decoration: InputDecoration(
                     labelText: 'Mobile Number *',
                     hintText: 'Enter Mobile No.',
                     border: OutlineInputBorder(
-                      // Use OutlineInputBorder for border styling
-                      borderRadius: BorderRadius.circular(
-                          10.0), // Define your desired border radius here
-                      borderSide: BorderSide(
-                        // Define border color and width
-                        color: Colors
-                            .blue, // Define your desired border color here
-                        width: 2.0, // Define your desired border width here
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: const BorderSide(
+                        color: Colors.blue,
+                        width: 2.0,
                       ),
                     ),
-                    // errorText: _errorText,
                   ),
                   onChanged: (value) {
-                    setState(() {
-                      //  _errorText = _validateMobile(value);
-                    });
+                    if (value.isEmpty || value.length < 10) {
+                      setState(() {
+                        isMobileNumberValid = false;
+                      });
+                    } else {
+                      setState(() {
+                        isMobileNumberValid = true;
+                        mobileNumber = value.toString();
+                      });
+                    }
                   },
                 ),
               ),
@@ -78,39 +91,74 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 50,
                 width: double.infinity,
                 child: ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                          Colors.black), // Change the color here
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.resolveWith(
+                      (states) {
+                        if (states.contains(MaterialState.disabled)) {
+                          return Colors.grey;
+                        }
+                        return Colors.black;
+                      },
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const OtpScreen()),
-                      );
-                    },
-                    child: const Text("Get OTP",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ))),
+                  ),
+                  onPressed: (isMobileNumberValid && tc)
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OtpScreen(
+                                mobileNumber: mobileNumber,
+                              ),
+                            ),
+                          );
+                        }
+                      : null,
+                  child: const Text(
+                    "Get OTP",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
               const Spacer(),
-              const ListTile(
-                leading: Icon(
-                  Icons.circle,
-                  color: Colors.blue,
-                ),
-                title: Text(
-                  "Allow fydaa to send financial knowledge and critical alerts on your WhatsApp.",
-                  style: TextStyle(
-                    fontSize: 12,
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    tc = !tc;
+                  });
+                },
+                child: ListTile(
+                  leading: Container(
+                    height: 25,
+                    width: 25,
+                    decoration: BoxDecoration(
+                      color: tc ? Colors.blue : Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: tc ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(7),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  title: const Text(
+                    "Allow fydaa to send financial knowledge and critical alerts on your WhatsApp.",
+                    style: TextStyle(
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               )

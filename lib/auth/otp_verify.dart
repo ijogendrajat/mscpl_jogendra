@@ -5,16 +5,18 @@ import 'package:flutter/material.dart';
 import '../utils/otp_input.dart';
 
 class OtpScreen extends StatefulWidget {
-  const OtpScreen({super.key});
+  final String mobileNumber;
+  const OtpScreen({super.key, required this.mobileNumber});
 
   @override
-  _OtpScreenState createState() => _OtpScreenState();
+  State<OtpScreen> createState() => _OtpScreenState();
 }
 
 class _OtpScreenState extends State<OtpScreen> {
   late Timer _timer;
   int _secondsRemaining = 170; // OTP timer 2.50 => 2*60+50
   String _otp = "";
+  int _resendCounter = 0;
   Color _containerColor = Colors.white;
 
   @override
@@ -60,7 +62,6 @@ class _OtpScreenState extends State<OtpScreen> {
     Duration duration = Duration(seconds: _secondsRemaining);
     String timerText =
         '${duration.inMinutes.remainder(60)}:${(duration.inSeconds.remainder(60)).toString().padLeft(2, '0')}';
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -87,7 +88,7 @@ class _OtpScreenState extends State<OtpScreen> {
               ),
               SizedBox(height: 8),
               Text(
-                "Enter the verification code sent to (9**) ***-**31.",
+                "Enter the verification code sent to ( ${widget.mobileNumber[0]}**) ***-**${widget.mobileNumber.substring(8, 10)}.",
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 20),
@@ -150,9 +151,15 @@ class _OtpScreenState extends State<OtpScreen> {
       height: 40,
       width: double.infinity,
       child: OutlinedButton(
-        onPressed: (_secondsRemaining == 0)
+        onPressed: (_secondsRemaining == 0 && _resendCounter < 5)
             ? () {
-                print("Sent OTP Again BTN Clicked");
+                debugPrint("Sent OTP Again BTN Clicked");
+                _startTimer();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('You can try max. 5 times : Alert'),
+                  ),
+                );
               }
             : null,
         style: OutlinedButton.styleFrom(
