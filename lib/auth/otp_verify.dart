@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../utils/otp_input.dart';
@@ -14,7 +12,7 @@ class OtpScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpScreen> {
   late Timer _timer;
-  int _secondsRemaining = 170; // OTP timer 2.50 => 2*60+50
+  int _secondsRemaining = 170; // OTP timer 2.50 => 2*60+50 on resend also
   String _otp = "";
   int _resendCounter = 0;
   Color _containerColor = Colors.white;
@@ -46,9 +44,15 @@ class _OtpScreenState extends State<OtpScreen> {
 
   void _onOTPCompleted(String otp) {
     _otp = otp;
-    if (otp == "934477") {
+    if (_otp.length < 6) {
+      setState(() {
+        _containerColor = Colors.white;
+        _startTimer();
+      });
+    } else if (otp == "934477") {
       setState(() {
         _containerColor = Colors.green;
+        _startTimer();
       });
     } else {
       setState(() {
@@ -119,7 +123,7 @@ class _OtpScreenState extends State<OtpScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: OTPInput(
-              otpLength: 6,
+              //  otpLength: 6,
               onCompleted: _onOTPCompleted,
             ),
           ),
@@ -151,15 +155,14 @@ class _OtpScreenState extends State<OtpScreen> {
       height: 40,
       width: double.infinity,
       child: OutlinedButton(
-        onPressed: (_secondsRemaining == 0 && _resendCounter < 5)
+        onPressed: (_secondsRemaining == 0 && _resendCounter < 2)
             ? () {
-                debugPrint("Sent OTP Again BTN Clicked");
-                _startTimer();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('You can try max. 5 times : Alert'),
-                  ),
-                );
+                debugPrint("Send OTP Again BTN Clicked");
+                _resendCounter++;
+                setState(() {
+                  _secondsRemaining = 170;
+                  _startTimer();
+                });
               }
             : null,
         style: OutlinedButton.styleFrom(
